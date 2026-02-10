@@ -23,15 +23,16 @@ import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.template.st.StTemplateRenderer;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
 
 @RestController
 @RequestMapping("/api/chat")
@@ -41,13 +42,19 @@ class ChatController {
     private final ChatClient advancedRagChatClient;
     private final ChatClient qaTemplateChatClient;
     private final ChatClient modularRagChatClient;
-    private final VectorStore vectorStore;
 
-    ChatController(ChatClient.Builder builder,
+    /**
+     * 在同一个 Bean 中创建多个 ChatClient 时，必须注入 ObjectProvider<ChatClient.Builder>
+     * 并通过 getObject() 获取独立的 Builder 实例，否则会导致 Advisor 污染和循环引用（StackOverflowError）
+     *
+     * @param builderProvider
+     * @param chatMemory
+     * @param vectorStore
+     */
+    ChatController(ObjectProvider<ChatClient.Builder> builderProvider,
                    ChatMemory chatMemory,
                    VectorStore vectorStore) {
-        this.vectorStore = vectorStore;
-        this.chatClient = builder
+        this.chatClient = builderProvider.getObject()
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),
                         QuestionAnswerAdvisor.builder(vectorStore).build(),
@@ -74,7 +81,7 @@ class ChatController {
                         2. Avoid statements like "Based on the context..." or "The provided information...".
                         """)
                 .build();
-        this.qaTemplateChatClient = builder
+        this.qaTemplateChatClient = builderProvider.getObject()
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),
                         QuestionAnswerAdvisor.builder(vectorStore)
@@ -83,7 +90,7 @@ class ChatController {
                         new SimpleLoggerAdvisor()
                 )
                 .build();
-        this.ragChatClient = builder
+        this.ragChatClient = builderProvider.getObject()
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),
                         RetrievalAugmentationAdvisor.builder()
@@ -94,7 +101,7 @@ class ChatController {
                 .build();
 
         DocumentPostProcessor keywordReranker = keywordReranker();
-        this.advancedRagChatClient = builder
+        this.advancedRagChatClient = builderProvider.getObject()
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),
                         RetrievalAugmentationAdvisor.builder()
@@ -103,28 +110,28 @@ class ChatController {
                                         .topK(20)
                                         .similarityThreshold(0.5)
                                         .build())
-                                .documentPostProcessors(java.util.List.of(keywordReranker))
+                                .documentPostProcessors(List.of(keywordReranker))
                                 .build(),
                         new SimpleLoggerAdvisor()
                 )
                 .build();
 
-        this.modularRagChatClient = builder
+        this.modularRagChatClient = builderProvider.getObject()
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(chatMemory).build(),
                         RetrievalAugmentationAdvisor.builder()
-                                .queryTransformers(java.util.List.of(
-                                        RewriteQueryTransformer.builder().chatClientBuilder(builder).build(),
-                                        CompressionQueryTransformer.builder().chatClientBuilder(builder).build(),
-                                        TranslationQueryTransformer.builder().chatClientBuilder(builder).targetLanguage("english").build()
+                                .queryTransformers(List.of(
+                                        RewriteQueryTransformer.builder().chatClientBuilder(builderProvider.getObject()).build(),
+                                        CompressionQueryTransformer.builder().chatClientBuilder(builderProvider.getObject()).build(),
+                                        TranslationQueryTransformer.builder().chatClientBuilder(builderProvider.getObject()).targetLanguage("english").build()
                                 ))
-                                .queryExpander(MultiQueryExpander.builder().chatClientBuilder(builder).numberOfQueries(3).build())
+                                .queryExpander(MultiQueryExpander.builder().chatClientBuilder(builderProvider.getObject()).numberOfQueries(3).build())
                                 .documentRetriever(VectorStoreDocumentRetriever.builder()
                                         .vectorStore(vectorStore)
                                         .similarityThreshold(0.4)
                                         .topK(10)
                                         .build())
-                                .documentPostProcessors(java.util.List.of(
+                                .documentPostProcessors(List.of(
                                         bm25Reranker(8),
                                         truncateDoc(600)
                                 ))
@@ -185,7 +192,7 @@ class ChatController {
                                                   String convId,
                                                   String filter) {
         String conversationId = convId == null ? UUID.randomUUID().toString() : convId;
-        var response = client.prompt()
+        String response = client.prompt()
                 .user(input.prompt())
                 .advisors(a -> {
                     a.param(ChatMemory.CONVERSATION_ID, conversationId);
@@ -194,6 +201,7 @@ class ChatController {
                     }
                 })
                 .call().content();
+
         ResponseCookie cookie = ResponseCookie.from("X-CONV-ID", conversationId)
                 .path("/")
                 .maxAge(3600)
