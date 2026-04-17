@@ -1,2 +1,2 @@
-java=21.0.9-tem
-maven=3.9.12
+java=21.0.10-graal
+maven=3.9.14

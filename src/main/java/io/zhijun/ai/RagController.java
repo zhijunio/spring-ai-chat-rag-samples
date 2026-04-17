@@ -1,6 +1,6 @@
-package cc.chensoul.ai;
+package io.zhijun.ai;
 
-import cc.chensoul.ai.util.Utils;
+import io.zhijun.ai.util.Utils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;

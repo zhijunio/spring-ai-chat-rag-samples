@@ -1,4 +1,4 @@
-package cc.chensoul.ai;
+package io.zhijun.ai;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;

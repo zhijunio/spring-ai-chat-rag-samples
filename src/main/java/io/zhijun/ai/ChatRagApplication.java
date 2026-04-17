@@ -1,4 +1,4 @@
-package cc.chensoul.ai;
+package io.zhijun.ai;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

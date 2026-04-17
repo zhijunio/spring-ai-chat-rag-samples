@@ -1,4 +1,4 @@
-package cc.chensoul.ai.util;
+package io.zhijun.ai.util;
 
 import org.springframework.ai.document.Document;
 

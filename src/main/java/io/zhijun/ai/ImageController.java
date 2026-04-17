@@ -1,7 +1,7 @@
-package cc.chensoul.ai;
+package io.zhijun.ai;
 
-import cc.chensoul.ai.model.ImageDescription;
-import cc.chensoul.ai.model.Item;
+import io.zhijun.ai.model.ImageDescription;
+import io.zhijun.ai.model.Item;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;

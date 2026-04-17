@@ -1,9 +1,9 @@
-package cc.chensoul.ai;
+package io.zhijun.ai;
 
-import cc.chensoul.ai.model.Input;
-import cc.chensoul.ai.model.Output;
-import cc.chensoul.ai.util.MarkdownHelper;
-import cc.chensoul.ai.util.Utils;
+import io.zhijun.ai.model.Input;
+import io.zhijun.ai.model.Output;
+import io.zhijun.ai.util.MarkdownHelper;
+import io.zhijun.ai.util.Utils;
 import jakarta.validation.Valid;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;

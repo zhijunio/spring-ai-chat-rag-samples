@@ -1,3 +1,3 @@
-package cc.chensoul.ai.model;
+package io.zhijun.ai.model;
 
 public record Output(String content) {}

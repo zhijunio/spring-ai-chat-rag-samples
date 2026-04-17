@@ -1,4 +1,4 @@
-package cc.chensoul.ai.model;
+package io.zhijun.ai.model;
 
 import jakarta.validation.constraints.NotBlank;
 

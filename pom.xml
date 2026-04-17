@@ -11,7 +11,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>cc.chensoul</groupId>
+    <groupId>io.zhijun</groupId>
     <artifactId>spring-ai-chat-rag-samples</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <description>Vector Stores and RAG</description>

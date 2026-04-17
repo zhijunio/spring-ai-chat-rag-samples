@@ -1,4 +1,4 @@
-package cc.chensoul.ai.util;
+package io.zhijun.ai.util;
 
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;

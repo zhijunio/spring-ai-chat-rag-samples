@@ -1,4 +1,4 @@
-package cc.chensoul.ai;
+package io.zhijun.ai;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
