@@ -19,7 +19,9 @@ COPY --from=build /app/target/*.jar app.jar
 
 # Change ownership to non-root user
 RUN chown -R appuser:appgroup /app
-USER appuser
+
+# JVM opts for container
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
 EXPOSE 8080
 
@@ -27,4 +29,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD wget -qO- http://localhost:8080/actuator/health || exit 1
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

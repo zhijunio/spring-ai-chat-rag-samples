@@ -28,10 +28,14 @@ Spring AI 构建的 RAG (检索增强生成) 示例项目，展示多种 RAG 模
 
 ### 环境要求
 
+使用 sdkman 管理环境
+
 ```bash
-# 使用 sdkman 安装 JDK 和 Maven
-sdk install java 21.0.7-tem
-sdk install maven 3.9.9
+# 安装 sdkman (首次)
+curl -s "https://get.sdkman.io" | bash
+
+# 项目根目录会自动读取 .sdkmanrc 并切换版本
+sdk env install
 
 # 验证版本
 java -version  # JDK 21
@@ -188,20 +192,11 @@ docker run -d \
 
 详见 [CI_CD.md](CI_CD.md)
 
+## 发布清单
+
+发布前请查看 [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md)
+
 ## 开发说明
-
-### 使用 sdkman 管理环境
-
-```bash
-# 安装 sdkman (首次)
-curl -s "https://get.sdkman.io" | bash
-
-# 项目根目录会自动读取 .sdkmanrc 并切换版本
-sdk env install
-
-# 验证版本
-sdk current
-```
 
 ### 运行测试
 
