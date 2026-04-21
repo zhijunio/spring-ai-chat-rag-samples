@@ -27,7 +27,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/rag")
-class RagController {
+public class RagController {
     private final EmbeddingModel embeddingModel;
     private final VectorStore vectorStore;
     private final ChatClient.Builder chatClientBuilder;

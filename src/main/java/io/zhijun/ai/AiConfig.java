@@ -10,6 +10,7 @@ import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfi
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.transformer.splitter.TextSplitter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
@@ -35,28 +36,46 @@ public class AiConfig {
     @Bean
     ApplicationRunner applicationRunner(VectorStore vectorStore) {
         return args -> {
-            loadDocument(vectorStore, aboutFile);
-            loadDocument(vectorStore, careerFile);
+            loadDocumentIfNotExists(vectorStore, aboutFile, "about");
+            loadDocumentIfNotExists(vectorStore, careerFile, "career");
         };
+    }
+
+    private void loadDocumentIfNotExists(VectorStore vectorStore, Resource resource, String sourceTag) {
+        // Check if document already exists by searching for documents with this source tag in metadata
+        List<Document> existing = vectorStore.similaritySearch(
+            SearchRequest.builder()
+                .query(sourceTag)
+                .topK(1)
+                .build()
+        );
+
+        boolean exists = !existing.isEmpty() && existing.stream()
+                .anyMatch(d -> sourceTag.equals(String.valueOf(d.getMetadata().get("source"))));
+
+        if (exists) {
+            log.info("Document {} already loaded, skipping", resource.getFilename());
+        } else {
+            loadDocument(vectorStore, resource);
+        }
     }
 
     private void loadDocument(VectorStore vectorStore, Resource resource) {
         log.info("Loading document {} into vector store", resource.getFilename());
 
-        DocumentReader documentReader = null;
-        if (resource.getFilename().endsWith(".md")) {
-            documentReader = new MarkdownDocumentReader(resource, MarkdownDocumentReaderConfig.defaultConfig());
-        } else if (resource.getFilename().endsWith(".pdf")) {
-            documentReader = new PagePdfDocumentReader(resource);
+        DocumentReader documentReader = createDocumentReader(resource);
+        if (documentReader == null) {
+            log.warn("Unsupported document type: {}", resource.getFilename());
+            return;
         }
 
         List<Document> documents = documentReader.get();
         TextSplitter textSplitter = new TokenTextSplitter();
         List<Document> splitDocuments = textSplitter.apply(documents);
         String src = FilenameUtils.getBaseName(resource.getFilename());
-        List<Document> enriched = java.util.stream.IntStream.range(0, splitDocuments.size())
-                .mapToObj(i -> {
-                    Document d = splitDocuments.get(i);
+
+        List<Document> enriched = splitDocuments.stream()
+                .map((d, i) -> {
                     Map<String, Object> meta = new HashMap<>();
                     if (d.getMetadata() != null) {
                         meta.putAll(d.getMetadata());
@@ -66,7 +85,17 @@ public class AiConfig {
                     return new Document(d.getText(), meta);
                 })
                 .collect(Collectors.toList());
+
         vectorStore.accept(enriched);
         log.info("Document {} loaded into vector store", resource.getFilename());
+    }
+
+    private DocumentReader createDocumentReader(Resource resource) {
+        if (resource.getFilename().endsWith(".md")) {
+            return new MarkdownDocumentReader(resource, MarkdownDocumentReaderConfig.defaultConfig());
+        } else if (resource.getFilename().endsWith(".pdf")) {
+            return new PagePdfDocumentReader(resource);
+        }
+        return null;
     }
 }

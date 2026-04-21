@@ -27,6 +27,7 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -85,7 +86,9 @@ public class ImageController {
                 .call()
                 .content();
 
-        assert content != null;
+        if (content == null) {
+            throw new RuntimeException("Chat client returned null content");
+        }
         return images.get(Integer.parseInt(content) - 1).getDataAsByteArray();
     }
 
@@ -99,13 +102,12 @@ public class ImageController {
                 .N(1)
                 .responseFormat("url")
                 .build()));
-        String url = ir.getResult().getOutput().getUrl();
-        UrlResource resource = new UrlResource(url);
-        LOG.info("Generated URL: {}", url);
+        UrlResource resource = createUrlResource(ir.getResult().getOutput().getUrl());
+        LOG.info("Generated URL: {}", resource);
         dynamicImages.add(Media.builder()
                 .id(UUID.randomUUID().toString())
                 .mimeType(MimeTypeUtils.IMAGE_PNG)
-                .data(url)
+                .data(resource)
                 .build());
         return resource.getContentAsByteArray();
     }
@@ -177,8 +179,8 @@ public class ImageController {
                 .N(1)
                 .responseFormat("url")
                 .build()));
-        UrlResource url = new UrlResource(ir.getResult().getOutput().getUrl());
-        LOG.info("URL: {}", ir.getResult().getOutput().getUrl());
+        UrlResource urlResource = createUrlResource(ir.getResult().getOutput().getUrl());
+        LOG.info("URL: {}", urlResource);
 
         String msg = """
                 Explain what do you see on the image.
@@ -187,7 +189,7 @@ public class ImageController {
 
         UserMessage um = UserMessage.builder()
                 .text(msg)
-                .media(new Media(MimeTypeUtils.IMAGE_PNG, url))
+                .media(new Media(MimeTypeUtils.IMAGE_PNG, urlResource))
                 .build();
 
         String content = this.chatClient.prompt(new Prompt(um))
@@ -200,6 +202,17 @@ public class ImageController {
                 .build();
 
         return store.similaritySearch(searchRequest);
+    }
+
+    private UrlResource createUrlResource(String url) {
+        if (url == null || !url.startsWith("https://")) {
+            throw new RuntimeException("Invalid image URL: only HTTPS URLs are allowed");
+        }
+        try {
+            return new UrlResource(url);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Invalid image URL format", e);
+        }
     }
 
 }

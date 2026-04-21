@@ -36,7 +36,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/chat")
-class ChatController {
+public class ChatController {
     private final ChatClient chatClient;
     private final ChatClient ragChatClient;
     private final ChatClient advancedRagChatClient;
@@ -44,8 +44,9 @@ class ChatController {
     private final ChatClient modularRagChatClient;
 
     /**
-     * 在同一个 Bean 中创建多个 ChatClient 时，必须注入 ObjectProvider<ChatClient.Builder>
-     * 并通过 getObject() 获取独立的 Builder 实例，否则会导致 Advisor 污染和循环引用（StackOverflowError）
+     * When creating multiple ChatClient beans in the same configuration, ObjectProvider<ChatClient.Builder>
+     * must be injected and getObject() called to obtain independent Builder instances.
+     * Otherwise, Advisor pollution and circular references (StackOverflowError) will occur.
      *
      * @param builderProvider
      * @param chatMemory
@@ -205,6 +206,8 @@ class ChatController {
         ResponseCookie cookie = ResponseCookie.from("X-CONV-ID", conversationId)
                 .path("/")
                 .maxAge(3600)
+                .secure(true)
+                .httpOnly(true)
                 .build();
         var htmlResponse = MarkdownHelper.toHTML(response);
         Output output = new Output(htmlResponse);
@@ -241,9 +244,11 @@ class ChatController {
 
     private DocumentPostProcessor truncateDoc(int maxLen) {
         return (query, docs) -> docs.stream().map(d -> {
-            String t = d.getText();
-            String nt = (t != null && t.length() > maxLen) ? t.substring(0, maxLen) : t;
-            return new Document(nt, d.getMetadata());
+            String text = d.getText();
+            String truncated = text != null && text.length() > maxLen
+                    ? text.substring(0, maxLen)
+                    : text;
+            return new Document(truncated, d.getMetadata());
         }).toList();
     }
 
