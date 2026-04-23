@@ -1,6 +1,6 @@
-package io.zhijun.ai;
+package io.zhijun.spring.ai;
 
-import io.zhijun.ai.util.Utils;
+import io.zhijun.spring.ai.util.Utils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;

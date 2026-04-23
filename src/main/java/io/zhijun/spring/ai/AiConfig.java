@@ -1,4 +1,4 @@
-package io.zhijun.ai;
+package io.zhijun.spring.ai;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -44,10 +44,10 @@ public class AiConfig {
     private void loadDocumentIfNotExists(VectorStore vectorStore, Resource resource, String sourceTag) {
         // Check if document already exists by searching for documents with this source tag in metadata
         List<Document> existing = vectorStore.similaritySearch(
-            SearchRequest.builder()
-                .query(sourceTag)
-                .topK(1)
-                .build()
+                SearchRequest.builder()
+                        .query(sourceTag)
+                        .topK(1)
+                        .build()
         );
 
         boolean exists = !existing.isEmpty() && existing.stream()
@@ -70,18 +70,18 @@ public class AiConfig {
         }
 
         List<Document> documents = documentReader.get();
-        TextSplitter textSplitter = new TokenTextSplitter();
+        TextSplitter textSplitter = TokenTextSplitter.builder().build();
         List<Document> splitDocuments = textSplitter.apply(documents);
         String src = FilenameUtils.getBaseName(resource.getFilename());
 
         List<Document> enriched = splitDocuments.stream()
-                .map((d, i) -> {
+                .map(d -> {
                     Map<String, Object> meta = new HashMap<>();
                     if (d.getMetadata() != null) {
                         meta.putAll(d.getMetadata());
                     }
                     meta.put("source", src);
-                    meta.put("id", src + "-" + i);
+                    meta.put("id", src + "-" + d.getId());
                     return new Document(d.getText(), meta);
                 })
                 .collect(Collectors.toList());

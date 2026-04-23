@@ -1,4 +1,4 @@
-package io.zhijun.ai.model;
+package io.zhijun.spring.ai.model;
 
 import jakarta.validation.constraints.NotBlank;
 

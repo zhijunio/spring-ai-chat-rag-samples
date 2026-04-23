@@ -1,9 +1,9 @@
-package io.zhijun.ai;
+package io.zhijun.spring.ai;
 
-import io.zhijun.ai.model.Input;
-import io.zhijun.ai.model.Output;
-import io.zhijun.ai.util.MarkdownHelper;
-import io.zhijun.ai.util.Utils;
+import io.zhijun.spring.ai.model.Input;
+import io.zhijun.spring.ai.model.Output;
+import io.zhijun.spring.ai.util.MarkdownHelper;
+import io.zhijun.spring.ai.util.Utils;
 import jakarta.validation.Valid;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;

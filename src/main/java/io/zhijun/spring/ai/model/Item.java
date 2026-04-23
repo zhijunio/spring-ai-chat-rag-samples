@@ -1,4 +1,4 @@
-package io.zhijun.ai.model;
+package io.zhijun.spring.ai.model;
 
 public class Item {
 

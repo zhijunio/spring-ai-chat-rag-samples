@@ -1,7 +1,7 @@
-package io.zhijun.ai;
+package io.zhijun.spring.ai;
 
-import io.zhijun.ai.model.ImageDescription;
-import io.zhijun.ai.model.Item;
+import io.zhijun.spring.ai.model.ImageDescription;
+import io.zhijun.spring.ai.model.Item;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package io.zhijun.ai.util;
+package io.zhijun.spring.ai.util;
 
 import org.springframework.ai.document.Document;
 
